@@ -50,9 +50,13 @@ void EEPROMRead();
 void Menu();
 void setup()
 {
+  delay(5000);
+  lols++;
+  setBright();
+  lol(lols);
   Serial.begin(115200);
   SerialPort.begin(9600);
-  delay(5000);
+
   EEPROMRead();
   pinModes();
 }
@@ -78,7 +82,6 @@ void loop()
     count = inData.res1 = 0;
   }
   checkEEPROM();
- 
 }
 void inNodeMCU()
 {
@@ -88,21 +91,22 @@ void inNodeMCU()
 }
 
 void NameLinePin(uint8_t Nam_LINE)
-{  uint8_t mVperAmp = 100;
+{
+  uint8_t mVperAmp = 100;
   int RawValue = 0;
-  uint16_t ACSoffset = 2500;  
-  digitalWrite(Nam_LINE, HIGH); 
+  uint16_t ACSoffset = 2500;
+  digitalWrite(Nam_LINE, HIGH);
   delay(500);
 
   RawValue = analogRead(Pin_MIT);
-  mit = ((((RawValue / 1023.0) * (ACSoffset * 2)) - ACSoffset) / mVperAmp); 
+  mit = ((((RawValue / 1023.0) * (ACSoffset * 2)) - ACSoffset) / mVperAmp);
   if (mit <= 0.70)
   {
     mit = 0.00;
   }
   mit = (mit - 0.6);
   delay(10);
-  digitalWrite(Nam_LINE, LOW); 
+  digitalWrite(Nam_LINE, LOW);
 }
 void testLine()
 {
@@ -117,32 +121,32 @@ void testLine()
     Serial.println();
     y++;
   }
-  lols++;
-  setBright();
-  lol(lols);
-
 }
-void setBright() {
-        lols = constrain(lols, 0, 100); // ограничили от 0 до 100
-         eepromFlag = true;                                // поднять флаг 
-        eepromTimer = millis();                           // сбросить таймер
-        
+void setBright()
+{
+  lols = constrain(lols, 0, 100); // ограничили от 0 до 100
+  eepromFlag = true;              // поднять флаг
+  eepromTimer = millis();         // сбросить таймер
+}
+void checkEEPROM()
+{
+
+  if (eepromFlag && (millis() - eepromTimer >= 500))
+  {                      // если флаг поднят и с последнего нажатия прошло 10 секунд (10 000 мс)
+    eepromFlag = false;  // опустили флаг
+    EEPROM.put(0, lols); // записали в EEPROM
   }
-void checkEEPROM() {
-
-  if (eepromFlag && (millis() - eepromTimer >= 500) ) {// если флаг поднят и с последнего нажатия прошло 10 секунд (10 000 мс)
-    eepromFlag = false;                           // опустили флаг
-    EEPROM.put(0, lols);                 // записали в EEPROM
-    }
 }
 
-void EEPROMRead() {
-if ( EEPROM.read(INIT_ADDR) != INIT_KEY) {     // первый запуск (ЕСЛИ INIT_ADDR (1023)не равен INIT_KEY (50) то записать EEPROM.write(INIT_ADDR, INIT_KEY);EEPROM.put(0, izmenenieTemp);
-        EEPROM.write(INIT_ADDR, INIT_KEY);      // записали ключ
-          EEPROM.put(0, lols);         // записали стандартное значение температуры. в данном случае это значение переменной, объявленное выше
-           }
-            EEPROM.get(0, lols);       // прочитали температуру    
- }
+void EEPROMRead()
+{
+  if (EEPROM.read(INIT_ADDR) != INIT_KEY)
+  {                                    // первый запуск (ЕСЛИ INIT_ADDR (1023)не равен INIT_KEY (50) то записать EEPROM.write(INIT_ADDR, INIT_KEY);EEPROM.put(0, izmenenieTemp);
+    EEPROM.write(INIT_ADDR, INIT_KEY); // записали ключ
+    EEPROM.put(0, lols);               // записали стандартное значение температуры. в данном случае это значение переменной, объявленное выше
+  }
+  EEPROM.get(0, lols); // прочитали температуру
+}
 
 void Menu()
 {
