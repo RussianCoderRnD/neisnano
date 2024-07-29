@@ -43,14 +43,18 @@ void recieveStructure(byte *structurePointer, int structureLength)
 void inNodeMCU();
 void NameLinePin(uint8_t);
 void testLine();
+void setBright();
+void _green();
+void checkEEPROM();
+void EEPROMRead();
 void Menu();
 void setup()
 {
   Serial.begin(115200);
   SerialPort.begin(9600);
   delay(5000);
+  EEPROMRead();
   pinModes();
-  testLine();
 }
 void loop()
 {
@@ -62,10 +66,6 @@ void loop()
   {
     count = 0;
     testLine();
-    Serial.print("inData.res1 ");
-    Serial.println(inData.res1);
-    Serial.print("  inData.count ");
-    Serial.println(inData.count);
     myData.LG = ArrayLineMit[1];
     myData.PG = ArrayLineMit[2];
     myData.LP = ArrayLineMit[3];
@@ -77,12 +77,8 @@ void loop()
     sendStructure((byte *)&myData, sizeof(myData));
     count = inData.res1 = 0;
   }
-
-  if (inData.count >= 1)
-  {
-    Serial.print("  inData.count ");
-    Serial.println(inData.count);
-  }
+  checkEEPROM();
+ 
 }
 void inNodeMCU()
 {
@@ -121,7 +117,33 @@ void testLine()
     Serial.println();
     y++;
   }
+  lols++;
+  setBright();
+  lol(lols);
+
 }
+void setBright() {
+        lols = constrain(lols, 0, 100); // ограничили от 0 до 100
+         eepromFlag = true;                                // поднять флаг 
+        eepromTimer = millis();                           // сбросить таймер
+        
+  }
+void checkEEPROM() {
+
+  if (eepromFlag && (millis() - eepromTimer >= 500) ) {// если флаг поднят и с последнего нажатия прошло 10 секунд (10 000 мс)
+    eepromFlag = false;                           // опустили флаг
+    EEPROM.put(0, lols);                 // записали в EEPROM
+    }
+}
+
+void EEPROMRead() {
+if ( EEPROM.read(INIT_ADDR) != INIT_KEY) {     // первый запуск (ЕСЛИ INIT_ADDR (1023)не равен INIT_KEY (50) то записать EEPROM.write(INIT_ADDR, INIT_KEY);EEPROM.put(0, izmenenieTemp);
+        EEPROM.write(INIT_ADDR, INIT_KEY);      // записали ключ
+          EEPROM.put(0, lols);         // записали стандартное значение температуры. в данном случае это значение переменной, объявленное выше
+           }
+            EEPROM.get(0, lols);       // прочитали температуру    
+ }
+
 void Menu()
 {
   if (count > 7)
